@@ -18,7 +18,7 @@ Example:
 """
 
 from .block import (C1, C2, C3, MANet, HyperComputeModule, C3TR, DFL, SPP, SPPF, Bottleneck, BottleneckCSP, C2f,
-                    C3Ghost, C3x, GhostBottleneck, HGBlock, HGStem, Proto, RepC3, ResNetLayer)
+                    C3Ghost, C3x, GhostBottleneck, HGBlock, HGStem, Proto, RepC3, ResNetLayer, Attention, C2PSA)
 from .conv import (CBAM, ChannelAttention, Concat, Conv, Conv2, ConvTranspose, GroupConv, DWConv, DWConvTranspose2d, Focus,
                    GhostConv, LightConv, RepConv, SpatialAttention)
 from .head import Classify, Detect, Pose, RTDETRDecoder, Segment
@@ -31,4 +31,4 @@ __all__ = ('Conv', 'Conv2', 'LightConv', 'RepConv', 'DWConv', 'DWConvTranspose2d
            'C2f', 'C3x', 'C3TR', 'C3Ghost', 'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'Detect',
            'Segment', 'Pose', 'Classify', 'TransformerEncoderLayer', 'RepC3', 'RTDETRDecoder', 'AIFI',
            'DeformableTransformerDecoder', 'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'ResNetLayer',
-           'MANet', 'HyperComputeModule','GroupConv')
+           'MANet', 'HyperComputeModule','GroupConv','Attention', 'C2PSA')

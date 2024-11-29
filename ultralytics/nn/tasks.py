@@ -11,7 +11,7 @@ import torch.nn as nn
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, MANet, GroupConv, HyperComputeModule, C3TR, SPP, SPPF, Bottleneck,
                                     BottleneckCSP, C2f, C3Ghost, C3x, Classify, Concat, Conv, Conv2, ConvTranspose,
                                     Detect, DWConv, DWConvTranspose2d, Focus, GhostBottleneck, GhostConv, HGBlock,
-                                    HGStem, Pose, RepC3, RepConv, ResNetLayer, RTDETRDecoder, Segment)
+                                    HGStem, Pose, RepC3, RepConv, ResNetLayer, RTDETRDecoder, Segment, Attention, C2PSA)
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
@@ -73,14 +73,17 @@ class BaseModel(nn.Module):
         """
         y, dt = [], []  # outputs
         for m in self.model:
-            if m.f != -1:  # if not from previous layer
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
-            if profile:
-                self._profile_one_layer(m, x, dt)
-            x = m(x)  # run
-            y.append(x if m.i in self.save else None)  # save output
-            if visualize:
-                feature_visualization(x, m.type, m.i, save_dir=visualize)
+                if m.f != -1:  # if not from previous layer
+                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+                if profile:
+                    self._profile_one_layer(m, x, dt)
+                try:
+                    x = m(x)  # run
+                except Exception as e:
+                    raise Exception(f"Error in {m} layer. {e}")
+                y.append(x if m.i in self.save else None)  # save output
+                if visualize:
+                    feature_visualization(x, m.type, m.i, save_dir=visualize)
         return x
 
     def _predict_augment(self, x):
@@ -684,13 +687,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in (Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
                  BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x, RepC3,
-                 MANet):
+                 MANet, C2PSA):
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
 
             args = [c1, c2, *args[1:]]
-            if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x, RepC3, MANet):
+            if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x, RepC3, MANet, C2PSA):
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is AIFI:

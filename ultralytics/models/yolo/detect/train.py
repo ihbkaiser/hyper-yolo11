@@ -121,11 +121,12 @@ class DetectionTrainer(BaseTrainer):
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize YOLO model given training data and device."""
-    model = cfg.model
-    data = cfg.data  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-
-    args = dict(model=model, data=data, device=device)
+    model = 'hyper-yolox.yaml'
+    data = 'data.yaml'  #path to your custom data.yaml
+    device = [0,1]
+    epoch = 120
+    
+    args = dict(model=model, data=data, device=device, epochs = epoch)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)
